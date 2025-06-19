@@ -107,26 +107,23 @@ def register_patient():
             print("Invalid vaccine code. Choose from: AF, BV, CZ, DM, EC")
             vaccine = input("Select vaccine: ").strip().upper()
 
-    # Validate contact early
+    # Contact Number (loop until valid and not duplicated)
     contact = input("Enter Contact Number: ").strip()
-    while not is_valid_contact(contact):
-        print("Invalid contact number. Please enter 10-15 digits only.")
+    while not is_valid_contact(contact) or contact_exists(contact):
+        if not is_valid_contact(contact):
+            print("❌ Invalid contact number. Please enter 10–15 digits only.")
+        else:
+            print("❌ This contact number is already registered.")
         contact = input("Enter Contact Number: ").strip()
 
-    # Check for duplicates immediately after getting both contact and email
-    if contact_exists(contact):
-        print("❌ This contact number is already registered.")
-        return
-
-    # Validate email early
+    # Email (loop until valid and not duplicated)
     email = input("Enter Email Address: ").strip()
-    while not is_valid_email(email):
-        print("Invalid email format.")
+    while not is_valid_email(email) or email_exists(email):
+        if not is_valid_email(email):
+            print("❌ Invalid email format.")
+        else:
+            print("❌ This email is already registered.")
         email = input("Enter Email Address: ").strip()
-
-    if email_exists(email):
-        print("❌ This email is already registered.")
-        return
 
     # Only save if all validations pass and patient is new
     pid = save_patient(name, age, contact, email, vaccine, vc)
