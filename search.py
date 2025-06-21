@@ -1,14 +1,13 @@
-# search.py
 from db import get_connection
 from datetime import datetime, timedelta
 
-# Rules for next dose interval
+# Vaccine rules include interval and required number of doses
 vaccine_rules = {
     'AF': {'interval': 14, 'doses': 2},
     'BV': {'interval': 21, 'doses': 2},
     'CZ': {'interval': 21, 'doses': 2},
     'DM': {'interval': 28, 'doses': 2},
-    'EC': {'interval': 0, 'doses': 1},
+    'EC': {'interval': 0,  'doses': 1},
 }
 
 def get_patient_info(patient_id):
@@ -28,7 +27,7 @@ def show_patient_status():
     try:
         pid = int(input("Enter Patient ID to search: "))
     except ValueError:
-        print("Invalid input. Please enter a numeric patient ID.")
+        print("❌ Invalid input. Please enter a numeric patient ID.")
         return
 
     patient, doses = get_patient_info(pid)
@@ -45,27 +44,43 @@ def show_patient_status():
     print(f"Email: {patient['email']}")
     print(f"Vaccination Center: {patient['vc']}")
     print(f"Vaccine: {patient['vaccine']}")
-    print("\n--- Vaccination History ---")
 
+    print("\n--- Vaccination History ---")
     if not doses:
         print("No doses recorded.")
     else:
         for dose in doses:
-            print(f"Dose: {dose['dose']} | Date: {dose['date_administered']}")
+            date_str = dose['date_administered'].strftime('%Y-%m-%d')
+            print(f"Dose: {dose['dose']} | Date: {date_str}")
 
-    # Determine status and suggest next dose date if applicable
+    # Status logic
     vaccine = patient['vaccine']
-    total_doses_required = vaccine_rules[vaccine]['doses']
+    total_required = vaccine_rules[vaccine]['doses']
     interval_days = vaccine_rules[vaccine]['interval']
 
+    print("\n--- Vaccination Status ---")
+
     if len(doses) == 0:
-        print("\nStatus: NEW")
-    elif len(doses) == 1 and total_doses_required == 2:
-        print("Status: COMPLETED-D1")
-        first_dose_date = doses[0]['date_administered']
-        next_dose_date = first_dose_date + timedelta(days=interval_days)
-        print(f"💡 Suggest patient to return for Dose 2 on: {next_dose_date}")
+        print("Status: NEW")
+    elif len(doses) == 1:
+        if total_required == 1:
+            print("Status: COMPLETED")
+        else:
+            print("Status: COMPLETED-D1")
+            first_dose_date = doses[0]['date_administered']
+            next_dose_date = first_dose_date + timedelta(days=interval_days)
+            print(f"💡 Suggest patient to return for Dose 2 on: {next_dose_date.strftime('%Y-%m-%d')}")
+    elif len(doses) >= total_required:
+        if total_required == 2:
+            d1_date = doses[0]['date_administered']
+            d2_date = doses[1]['date_administered']
+            actual_gap = (d2_date - d1_date).days
+            if actual_gap < interval_days:
+                print("⚠️ Dose 2 was given too early!")
+            print("Status: COMPLETED")
+        else:
+            print("Status: COMPLETED")
     else:
-        print("Status: COMPLETED")
+        print("Status: INCOMPLETE")
 
     print("\n===========================")

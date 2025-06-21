@@ -29,16 +29,29 @@ DROP TABLE IF EXISTS patients;
 # Constraint the data input as unique
 #######################################################################################
 ALTER TABLE patients
-ADD CONSTRAINT unique_patient_info
-UNIQUE (contact, email);
+ADD CONSTRAINT unique_contact UNIQUE (contact),
+ADD CONSTRAINT unique_email UNIQUE (email);
 
 CREATE USER 'vaxuser'@'localhost' IDENTIFIED BY 'vaxpass123';
 GRANT ALL PRIVILEGES ON vaccination_system.* TO 'vaxuser'@'localhost';
 FLUSH PRIVILEGES;
 
 SELECT * FROM PATIENTS;
+SELECT * FROM VACCINATIONS;
 
+#######################################################################################
+#UPDATE patient's name
+#######################################################################################
+#'2', 'YU JIE XIANg', '22', '01110838974', 'zhichin@gmail.com', 'VC1', 'AF'
+UPDATE patients
+SET name= UPPER(name)
+WHERE patient_id = 2;
 
+#######################################################################################
+#DELETE patients
+#######################################################################################
+DELETE FROM patients
+WHERE patient_id IN (1, 2);
 
 
 
