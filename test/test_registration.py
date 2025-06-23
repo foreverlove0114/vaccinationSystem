@@ -50,6 +50,19 @@ def test_age_12_can_take_AF():
 def test_age_45_can_take_CZ():
     assert is_vaccine_eligible("CZ", 45)
 
+# 在 pytest 中使用多个 @patch 装饰器时，mock 对象的注入是从下往上传参的。
+@patch("patient.get_connection")
+def test_contact_not_exists(mock_conn):
+    mock_cursor = mock_conn.return_value.cursor.return_value
+    mock_cursor.fetchall.return_value = []  # 模拟数据库中没有该手机号
+    assert contact_exists("0111234567") == False
+
+@patch("patient.get_connection")
+def test_email_not_exists(mock_conn):
+    mock_cursor = mock_conn.return_value.cursor.return_value
+    mock_cursor.fetchall.return_value = []  # 模拟数据库中没有该邮箱
+    assert email_exists("notfound@example.com") == False
+
 # ------------------- Invalid Test Cases -------------------
 def test_invalid_vc():
     assert not is_valid_vaccination_center("VC3")
@@ -76,8 +89,8 @@ def test_invalid_contact_format():
 @patch("patient.get_connection")
 def test_duplicate_contact(mock_conn):
     mock_cursor = mock_conn.return_value.cursor.return_value
-    mock_cursor.fetchall.return_value = [(1,)]
-    assert contact_exists("01112345678")
+    mock_cursor.fetchall.return_value = [(0,)]
+    assert contact_exists("0111234567")
 
 @patch("patient.get_connection")
 def test_duplicate_email(mock_conn):
